@@ -11,15 +11,20 @@ class MBTILoader:
 class MBTITransformer:
     @staticmethod
     def transform_mbti(input_json):
+        # 원본 mbti_vector를 계산합니다.
         mbti_vector = [
             1 - input_json.get('I', 0) if 'I' in input_json else input_json.get('E', 0),
             1 - input_json.get('N', 0) if 'N' in input_json else input_json.get('S', 0),
             1 - input_json.get('T', 0) if 'T' in input_json else input_json.get('F', 0),
             1 - input_json.get('J', 0) if 'J' in input_json else input_json.get('P', 0)
         ]
+        
+        # 각 값을 -1과 1 사이로 변환하여 정규화 적용
+        normalized_mbti_vector = [2 * x - 1 for x in mbti_vector]
+
         return {
             "name": input_json["user"],
-            "mbti": mbti_vector
+            "mbti": normalized_mbti_vector
         }
 
 class CosineSimilarity:
@@ -44,11 +49,12 @@ class ActivityRecommender:
         
         user_mbti_vector = np.array(transformed_user_mbti_data["mbti"])
         user_name = transformed_user_mbti_data["name"]
-        
+        print(user_mbti_vector)
         recommendations = []
         for activity, vector in activities_data.items():
             similarity = CosineSimilarity.calculate_similarity(user_mbti_vector, np.array(vector))
-            if similarity >= 0.9:
+            # print(similarity)
+            if similarity >= 0.5:
                 recommendations.append(activity)
         return user_name, recommendations
 
