@@ -10,8 +10,13 @@ class MBTILoader:
 
 class MBTITransformer:
     @staticmethod
+    def normalize_vector(vector):
+        """벡터의 각 요소를 -1과 1 사이의 값으로 정규화."""
+        return [2 * x - 1 for x in vector]
+
+    @staticmethod
     def transform_mbti(input_json):
-        # 원본 mbti_vector를 계산합니다.
+        # 원본 mbti_vector를 계산한다.
         mbti_vector = [
             1 - input_json.get('I', 0) if 'I' in input_json else input_json.get('E', 0),
             1 - input_json.get('N', 0) if 'N' in input_json else input_json.get('S', 0),
@@ -19,13 +24,10 @@ class MBTITransformer:
             1 - input_json.get('J', 0) if 'J' in input_json else input_json.get('P', 0)
         ]
         
-        # 각 값을 -1과 1 사이로 변환하여 정규화 적용
-        normalized_mbti_vector = [2 * x - 1 for x in mbti_vector]
+        # 정규화된 MBTI 벡터를 계산한다.
+        normalized_mbti_vector = MBTITransformer.normalize_vector(mbti_vector)
 
-        return {
-            "name": input_json["user"],
-            "mbti": normalized_mbti_vector
-        }
+        return {"name": input_json["user"], "mbti": normalized_mbti_vector}
 
 class CosineSimilarity:
     @staticmethod
@@ -41,31 +43,35 @@ class ActivityRecommender:
         self.user_mbti_file = user_mbti_file
         self.activities_file = activities_file
 
+    def normalize_activity_vector(self, activity_vector):
+        return MBTITransformer.normalize_vector(activity_vector)
+
     def recommend_activities(self):
         original_user_mbti_data = MBTILoader.load_json_data(self.user_mbti_file)
         transformed_user_mbti_data = MBTITransformer.transform_mbti(original_user_mbti_data)
         
         activities_data = MBTILoader.load_json_data(self.activities_file)
         
+        normalized_activities_data = {
+            activity: self.normalize_activity_vector(vector)
+            for activity, vector in activities_data.items()
+        }
+        
         user_mbti_vector = np.array(transformed_user_mbti_data["mbti"])
         user_name = transformed_user_mbti_data["name"]
-        print(user_mbti_vector)
+        
         recommendations = []
-        for activity, vector in activities_data.items():
+        for activity, vector in normalized_activities_data.items():
             similarity = CosineSimilarity.calculate_similarity(user_mbti_vector, np.array(vector))
-            # print(similarity)
             if similarity >= 0.5:
                 recommendations.append(activity)
         return user_name, recommendations
 
 if __name__ == "__main__":
-    # 파일 경로 지정
     user_mbti_file = './user_mbti.json'
     activities_file = './activities.json'
 
-    # 추천 운동 리스트
     recommender = ActivityRecommender(user_mbti_file, activities_file)
     user_name, recommendations = recommender.recommend_activities()
 
-    # 사용자에게 추천 운동 출력
     print(f"{user_name}님의 추천 운동:", recommendations)
