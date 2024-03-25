@@ -33,9 +33,23 @@ mbti_vector = [
     1 - input_json.get('J', 0) if 'J' in input_json else input_json.get('P', 0)
 ]
 ```
+
+# 벡터 스케일링 적용
+코사인 유사도는 -1부터 1 사이값을 가집니다. 그러나 MBTI 벡터들은 0~1사이의 양수 값을 가지기 때문에 코사인 유사도가 높게 나올 수 밖에 없습니다. <br>
+때문에 4가지의 각 MBTI벡터와 운동정보 벡터들을 -1과 1로 범위를 늘리는 스케일링을 해주었습니다. 스케일링 공식은 아래와 같습니다. <br>
+```python
+def normalize_vector(vector):
+    """벡터의 각 요소를 -1과 1 사이의 값으로 정규화."""
+    return [2 * x - 1 for x in vector]
+```
+<p align="center">
+  <img src="https://github.com/StatisticsFox/MBTI_ActivityRecommender/assets/92065443/984b45ec-402b-4404-b2d3-622b658dfb8c" width="10%" height="auto" />
+</p>
+
 # 추천 알고리즘
 알고리즘은 코사인 유사도를 계산하는 방식으로 구현했습니다. <br>
-유저가 본인의 MBTI수치를 입력하면 운동 MBTI 수치와 비교하여 0.9이상인 운동을 유저에게 추천 해줍니다.<br>
+유저가 본인의 MBTI수치를 입력하면 운동 MBTI 수치와 비교하여 0.5이상인 운동을 유저에게 추천 해줍니다.<br>
+어떤 수치 이상을 알려줄지 상위 5개의 운동을 추천해줄지는 팀원과 상의를 통해 그리고 요구사항 분석을 진행 해서 더 디밸롭할 예정입니다.
 
 ## 코사인 유사도란?
 -1부터 1의 값을 가지며 1에 가까울수록 두 벡터가 비슷한 성질을 지닌다고 판단합니다.
