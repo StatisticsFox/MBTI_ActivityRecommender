@@ -27,7 +27,10 @@ class MBTITransformer:
         # 정규화된 MBTI 벡터를 계산한다.
         normalized_mbti_vector = MBTITransformer.normalize_vector(mbti_vector)
 
-        return {"name": input_json["user"], "mbti": normalized_mbti_vector}
+        return {
+            "name": input_json["user"], 
+            "mbti": normalized_mbti_vector
+        }
 
 class CosineSimilarity:
     @staticmethod
